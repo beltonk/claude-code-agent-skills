@@ -1,0 +1,26 @@
+# OS
+.DS_Store
+Thumbs.db
+
+# Node artifacts
+node_modules/
+*.tgz
+
+# Change management artifacts
+openspec/
+
+# Temp and build artifacts
+*.log
+.cache/
+.tmp/
+
+# Editor
+.cursor/
+.vscode/
+*.swp
+*.swo
+
+# Environment
+.env
+.env.*
+!.env.example

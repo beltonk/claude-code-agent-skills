@@ -1,0 +1,3 @@
+# AGENTS
+
+<!-- Skills section removed -->
