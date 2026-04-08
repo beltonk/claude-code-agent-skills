@@ -4,6 +4,12 @@ A complete, reusable asset pack for AI agents — an `AGENTS.md` system prompt p
 
 Drop this folder into any project to give your AI agent (Cursor, OpenCode, Antigravity, or any IDE with agent/skill support) battle-tested behavioral rules and workflow patterns. Works for coding agents and general-purpose agents alike.
 
+## Overlap with [Superpowers](https://github.com/obra/superpowers)
+
+If you already use Jesse Vincent’s [Superpowers](https://github.com/obra/superpowers) plugin (Cursor marketplace: `/add-plugin superpowers`), prefer its actively maintained skills for **code review reception**, **multi-agent / worktree workflows**, and **verification discipline** — for example [`receiving-code-review`](https://github.com/obra/superpowers/tree/main/skills/receiving-code-review), [`dispatching-parallel-agents`](https://github.com/obra/superpowers/tree/main/skills/dispatching-parallel-agents), [`subagent-driven-development`](https://github.com/obra/superpowers/tree/main/skills/subagent-driven-development), [`using-git-worktrees`](https://github.com/obra/superpowers/tree/main/skills/using-git-worktrees), and [`verification-before-completion`](https://github.com/obra/superpowers/tree/main/skills/verification-before-completion). This pack keeps **Claude Code–oriented** standards, memory/context/handoff/scaffolding skills, plus **`run-checks.sh`** under `coding-practices/scripts/` so you still have one-shot test/lint/type/build detection without duplicating Superpowers’ skill text.
+
+**`scaffolding-projects`** still fits here: it is a single skill with `explore-project.sh`. Superpowers splits similar ground across [`brainstorming`](https://github.com/obra/superpowers/tree/main/skills/brainstorming), [`writing-plans`](https://github.com/obra/superpowers/tree/main/skills/writing-plans), and [`executing-plans`](https://github.com/obra/superpowers/tree/main/skills/executing-plans). Use whichever packaging you prefer, or both if you want the exploration script alongside Superpowers’ plan-driven flow.
+
 ## What's inside
 
 ```
@@ -25,15 +31,11 @@ skills/
 │   ├── SKILL.md
 │   ├── coding-behavior.md
 │   ├── tool-preferences.md
+│   ├── scripts/
+│   │   └── run-checks.sh              ← Auto test/lint/type/build report
 │   └── references/
-│       └── tool-design-checklist.md
-│
-├── verifying-implementations/         ← Adversarial verification
-│   ├── SKILL.md
-│   ├── references/
-│   │   └── verification-report-template.md
-│   └── scripts/
-│       └── run-checks.sh
+│       ├── tool-design-checklist.md
+│       └── verification-report-template.md
 │
 ├── compacting-context/                ← Structured summarization
 │   ├── SKILL.md
@@ -46,17 +48,6 @@ skills/
 │   ├── SKILL.md
 │   └── scripts/
 │       └── gather-session-context.sh
-│
-├── coordinating-agents/               ← Multi-agent orchestration
-│   ├── SKILL.md
-│   ├── references/
-│   │   ├── agent-types.md
-│   │   └── worker-prompt-template.md
-│   └── scripts/
-│       └── setup-worktree.sh
-│
-├── receiving-code-review/             ← Code review handling
-│   └── SKILL.md
 │
 ├── managing-memories/                 ← Memory lifecycle (save, recall, organize)
 │   ├── SKILL.md
@@ -92,16 +83,13 @@ Skills are split into **general** (any agent interaction) and **coding-specific*
 | Any interaction | Foundational standards (safety, output quality, memory, prompt defense) |
 | Context window filling up | Structured 9-section summarization |
 | Session ending or switching agents | Structured handoff document |
-| Task has parallelizable sub-problems | Multi-agent coordination workflow |
 | Natural breakpoint after significant work | Memory save/recall with secret scanning |
 
 #### Coding-specific skills
 
 | Situation | What kicks in |
 |-----------|--------------|
-| Agent starts writing code | Coding standards (scope, read-before-write, verify, tools) |
-| Non-trivial implementation complete | Adversarial verification with evidence requirements |
-| PR review comments received | Prioritized review handling |
+| Agent starts writing code | Coding standards (scope, read-before-write, verify, tools); optional `run-checks.sh` for bundled checks |
 | New feature or project starting | Structured scaffolding workflow |
 
 ### Scripts — reusable operational tools
@@ -112,15 +100,14 @@ Each skill that includes scripts has them fully self-contained — detection and
 
 | Script | Skill | What it automates |
 |--------|-------|-------------------|
-| `run-checks.sh` | verifying-implementations | Runs test suite + linter + type checker + builder → structured PASS/FAIL report |
+| `run-checks.sh` | coding-practices | Runs test suite + linter + type checker + builder → structured PASS/FAIL report |
 | `estimate-tokens.sh` | compacting-context | Estimates token count for files/dirs/stdin; warns at 85% context pressure |
 | `gather-session-context.sh` | handing-off-sessions | Collects CWD, OS, git state, project type, recent files, directory structure |
-| `setup-worktree.sh` | coordinating-agents | Creates/tears down isolated git worktrees for parallel workers |
 | `explore-project.sh` | scaffolding-projects | Full project profile: type, framework, tests, CI, structure, entry points |
 | `scan-secrets.sh` | managing-memories | 36 credential patterns — exit 1 if secrets found, returns rule IDs only |
 | `memory-index.sh` | managing-memories | Manages MEMORY.md index: add, deduplicate, search, validate consistency |
 
-Not every skill has a script. `receiving-code-review`, `agentic-standards`, and `coding-practices` have no scripts — the agent uses its existing tools directly. Scripts are only created where they provide a clear efficiency gain.
+Only `agentic-standards` has no scripts (it relies on reference markdown). Scripts are only added where they provide a clear efficiency gain.
 
 All scripts are bash 3.2+ compatible (macOS default), produce structured markdown output, and exit with meaningful codes (0 = pass, 1 = fail, 2 = partial).
 
@@ -131,7 +118,7 @@ Reference files inside skills provide operational depth loaded only when needed:
 - Permission pipelines and tool design patterns
 - Agent loop design patterns (flat state machine, streaming + overlapped execution, recovery mechanisms)
 - Report templates for structured verification output
-- Prompt templates for memory recall and worker coordination
+- Prompt templates for memory recall
 - Pipeline specs for context management (5-stage pipeline, circuit breakers)
 - Pattern libraries for adversarial probes and secret scanning
 

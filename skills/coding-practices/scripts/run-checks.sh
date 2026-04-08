@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Auto-detect and run verification checks for a project.
-# Uses shared detect-project.sh for consistent detection across skills.
+# Detection logic is inlined for portability (no shared dependency scripts).
 # Outputs structured PASS/FAIL results the agent can parse directly.
 #
 # Usage:

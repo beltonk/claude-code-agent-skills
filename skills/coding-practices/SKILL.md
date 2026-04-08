@@ -24,6 +24,13 @@ Practices specific to **writing and editing code**. Use alongside `agentic-stand
 
 Load the reference files above for detailed guidance.
 
+## Verification helpers
+
+Pair with [Superpowers](https://github.com/obra/superpowers) [`verification-before-completion`](https://github.com/obra/superpowers/tree/main/skills/verification-before-completion) for the “no completion claims without fresh evidence” rule. This repo keeps optional automation and a report shape that works without that plugin:
+
+- **[run-checks.sh](scripts/run-checks.sh)** — Auto-detects test runner, linter, type checker, and build for common stacks; prints a structured PASS/FAIL report (`./run-checks.sh`, `--tests-only`, `--lint-only`).
+- **[Verification report template](references/verification-report-template.md)** — Evidence-style checklist and adversarial probe ideas for manual or scripted runs.
+
 ## Deep references
 
 For system-level design patterns, load when building or reviewing agent tool infrastructure:
