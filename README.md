@@ -6,6 +6,7 @@ Claude Code is a production agentic system that reads codebases, edits files, ru
 
 1. **[Architecture Analysis](#architecture-overview)** — Six documents covering the agent loop, prompt engineering, tool system, memory, permissions, multi-agent coordination, and more.
 2. **[Reusable Agent Skills](#the-agent-skills-pack)** — A drop-in `AGENTS.md` system prompt and 9 standalone agent skills, LLM-agnostic and IDE-agnostic.
+3. **[From Analysis to Agent Skills](#from-analysis-to-agent-skills)** — What was distilled into skills, what wasn't (and why), and how to implement the rest.
 
 ---
 
@@ -115,6 +116,65 @@ The most transferable insights for any LLM agent system:
 
 ---
 
+## From Analysis to Agent Skills
+
+The analysis covers 12 architectural domains and 22 reusable patterns. The agent skills pack distills a subset of these into *actionable instructions that an LLM can follow directly*. This section maps what was distilled, what was left out, and why — and points you toward implementing the rest.
+
+### What the skills pack covers
+
+The AGENTS.md system prompt and 9 agent skills encode the patterns that govern **how an agent behaves turn-by-turn** — the decisions it makes, the discipline it follows, and the workflows it runs. These are the patterns where natural-language instructions to an LLM are the implementation.
+
+| Analysis Domain | What's Distilled | Where |
+|-----------------|-----------------|-------|
+| **Prompt engineering** (§2) | Static/dynamic split, cache boundary, assembly order, prompt layering, environment injection | AGENTS.md §System Prompt Architecture |
+| **Tool design** (§3) | Tool preference hierarchy, match-based edits, result handling, progressive discovery | AGENTS.md §Using Your Tools |
+| **Memory** (§4) | Index-file architecture, threshold-gated extraction, staleness detection, secret scanning, LLM-based recall | managing-memories skill |
+| **Context management** (§5) | 9-section structured summaries, two-phase compression, post-compact re-injection | compacting-context skill |
+| **Permission & safety** (§6) | Reversibility framework, risk assessment heuristic, security policy, prompt injection defense | AGENTS.md §Executing Actions with Care, agentic-standards skill |
+| **Multi-agent coordination** (§7) | Research→Synthesis→Implementation→Verification workflow, self-contained worker prompts, worktree isolation | coordinating-agents skill |
+| **Self-correction** (§8) | Adversarial verification, evidence requirements, plan-mode reasoning | verifying-implementations skill |
+| **Session continuity** | Structured handoff documents, session memory extraction | handing-off-sessions skill |
+| **Code review** | Severity classification, independent verification, conflict resolution | receiving-code-review skill |
+| **Project onboarding** | Structured scaffolding, project exploration | scaffolding-projects skill |
+
+### What the skills pack does NOT cover
+
+The remaining patterns are **infrastructure concerns** — they require code running *around* the LLM, not instructions *to* the LLM. You can't tell a model to "implement a streaming parser" or "sandbox yourself" in a system prompt. These patterns must be built into the agent framework, the IDE, or the deployment platform.
+
+| Analysis Domain | Why It's Not a Skill | How to Implement |
+|-----------------|---------------------|------------------|
+| **Agent loop** (§1) — flat state machine, streaming, overlapped execution, recovery cascade | The loop is the runtime that *hosts* the agent. The LLM runs inside it; it can't implement it. | Build a `while(true)` loop with explicit state objects. Use an AsyncGenerator (JS/TS) or `async for` (Python) to yield events. Define all termination conditions upfront. See [Pattern #1](./analysis/02-patterns-catalog.md#1-asyncgenerator-state-machine) and [Pattern #3](./analysis/02-patterns-catalog.md#3-progressive-recovery-cascade). |
+| **Streaming & withholding** (§1.3–1.4) — progressive rendering, error buffering during recovery | These are UI/transport concerns between the agent loop and the display layer. | Buffer errors during active retries; only surface when unrecoverable. Start tool execution before the model finishes generating when tool inputs are complete. See [Pattern #2](./analysis/02-patterns-catalog.md#2-withholding-mechanism) and [Pattern #7](./analysis/02-patterns-catalog.md#7-streaming-tool-execution). |
+| **Tool execution pipeline** (§3) — schema validation, pre/post hooks, concurrency partitioning | The pipeline that *wraps* tool calls is framework code, not LLM behavior. | Implement a pipeline: validate schema → run pre-hooks → check permissions → execute → run post-hooks → map results. Declare concurrency safety per tool. See [Pattern #5](./analysis/02-patterns-catalog.md#5-fail-closed-tool-factory) and [Pattern #6](./analysis/02-patterns-catalog.md#6-concurrency-partitioning). |
+| **Permission pipeline** (§6) — deny→ask→allow→mode default, AST-based command validation, OS sandbox | Permission enforcement requires intercepting tool calls at runtime. An LLM can follow a *heuristic*, but the actual gate must be code. | Build a progressive pipeline where deny rules are irrevocable. Use AST parsing (not just regex) for shell command validation. Layer an OS sandbox as defense in depth. See [Pattern #14](./analysis/02-patterns-catalog.md#14-progressive-permission-pipeline) and [Pattern #15](./analysis/02-patterns-catalog.md#15-ast-based-security-with-regex-fallback). |
+| **Autonomous operation** (§9) — background execution, speculative execution, copy-on-write | Background and speculative modes require process management, filesystem overlays, and scheduling — all outside the LLM. | Run the agent loop headlessly with structured output. For speculation, pre-execute likely next requests against a COW filesystem snapshot; discard on misprediction. See [Design Handbook §9](./analysis/04-design-handbook.md#9-autonomous-and-background-operation). |
+| **Observability** (§10) — telemetry, queue-then-drain sinks, no-string metadata types | Telemetry is an infrastructure concern. The LLM doesn't instrument itself. | Buffer events from startup, drain when the sink is ready. Use type systems to prevent PII in telemetry payloads. See [Pattern #21](./analysis/02-patterns-catalog.md#21-no-string-metadata-type) and [Pattern #22](./analysis/02-patterns-catalog.md#22-queue-then-drain-sink). |
+| **Configuration & feature gating** (§11) — build-time DCE, three-tier gating, 5-layer settings | Configuration systems are application code, not behavioral rules. | Use three tiers: build-time flags (dead-code elimination), runtime flags, and identity-based gates. Layer settings: defaults → org policy → user prefs → project → session. See [Pattern #19](./analysis/02-patterns-catalog.md#19-compile-time-feature-flag-dce) and [Pattern #20](./analysis/02-patterns-catalog.md#20-three-tier-gating). |
+| **Diminishing returns detection** (§1) — stopping after low-output continuations | Requires measuring token output per turn from outside the model. | Track output volume per continuation. After 3+ consecutive low-output turns, stop the loop. See [Pattern #4](./analysis/02-patterns-catalog.md#4-diminishing-returns-detection). |
+
+### Why distill into skills at all?
+
+The analysis documents are written for engineers building agent systems. The skills pack is written for agents *being* agent systems. The distinction matters:
+
+- **Prompt-level patterns work.** An LLM that reads "verify before claiming done" and "re-read files after context compression" actually does those things. Behavioral instructions are the implementation for patterns that govern judgment and discipline.
+- **Token efficiency.** AGENTS.md is ~4K tokens — always loaded. Skills load on demand. Reference docs load only when depth is needed. The full analysis is ~80K tokens; you'd never load it all into context. The skills pack is a lossy compression optimized for the LLM as the reader.
+- **Portable.** The skills are LLM-agnostic and IDE-agnostic. They work in Cursor, Claude Code, OpenCode, or any agent framework that can load instruction files. No code dependency, no runtime dependency.
+- **Composable.** Each skill is standalone. Use one, use all, or mix with your own. The AGENTS.md is optional — skills work without it.
+- **Grounded.** Every pattern in the skills pack traces back to a production system (Claude Code). They're not theoretical best practices — they're distilled from observed architecture.
+
+### The gap in between
+
+Between "patterns the LLM can follow" (skills) and "patterns that require framework code" (infrastructure) sits a middle ground: patterns where **the framework provides the mechanism** and **the skill teaches the agent when and how to use it**.
+
+Examples already in the pack:
+- **Memory**: the framework provides a filesystem; the skill teaches the agent *what* to remember, *when* to extract, and *how* to organize it.
+- **Multi-agent coordination**: the framework provides sub-agent spawning; the skill teaches the agent *when* to parallelize, *how* to write worker prompts, and *how* to synthesize results.
+- **Context management**: the framework triggers compaction; the skill teaches the agent *how* to summarize without losing critical information.
+
+If you're building an agent framework, the analysis documents tell you what mechanisms to provide. The skills tell you what the agent should do with them.
+
+---
+
 ## Design Tensions
 
 | Tension | Resolution |
@@ -197,7 +257,8 @@ Drop `skills/` into any project to equip your AI agent with Claude Code–inspir
 - **Understand the architecture** → This README → [Architecture Dossier](./analysis/01-architecture-dossier.md) → [Design Handbook](./analysis/04-design-handbook.md)
 - **Extract reusable patterns** → [Design Handbook §12](./analysis/04-design-handbook.md#12-design-tensions) → [Patterns Catalog](./analysis/02-patterns-catalog.md)
 - **Copy specific assets** → [Reusable Assets](./analysis/06-reusable-assets.md)
-- **Equip your AI agent** → [skills/README.md](./skills/README.md)
+- **Equip your AI agent** → [From Analysis to Agent Skills](#from-analysis-to-agent-skills) → [skills/README.md](./skills/README.md)
+- **Build the framework, equip the agent** → [From Analysis to Agent Skills](#from-analysis-to-agent-skills) (what to build vs. what to prompt)
 
 ---
 
