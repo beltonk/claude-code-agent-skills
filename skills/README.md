@@ -1,8 +1,8 @@
 # Agentic Patterns
 
-A complete, reusable asset pack for AI agents — an `AGENTS.md` system prompt plus standalone agent skills with reference docs and scripts.
+A complete, reusable asset pack for AI agents — system prompt templates ([`../templates/AGENTS-coding.md`](../templates/AGENTS-coding.md), [`../templates/AGENTS-generic.md`](../templates/AGENTS-generic.md)) plus standalone agent skills with reference docs and scripts.
 
-Drop this folder into any project to give your AI agent (Cursor, OpenCode, Antigravity, or any IDE with agent/skill support) battle-tested behavioral rules and workflow patterns. Works for coding agents and general-purpose agents alike.
+Drop this folder into any project to give your AI agent (Cursor, OpenCode, Antigravity, or any IDE with agent/skill support) battle-tested behavioral rules and workflow patterns. Pick **coding** or **coding + general** template and copy it to your **project root** as `AGENTS.md` so your IDE loads it automatically.
 
 ## Overlap with [Superpowers](https://github.com/obra/superpowers)
 
@@ -12,9 +12,14 @@ If you already use Jesse Vincent’s [Superpowers](https://github.com/obra/super
 
 ## What's inside
 
+Repository layout (template + skills):
+
 ```
+templates/
+├── AGENTS-coding.md                   ← Code-focused system prompt — copy to project root as AGENTS.md
+└── AGENTS-generic.md                  ← Coding + general Q&A — copy to project root as AGENTS.md
+
 skills/
-├── AGENTS.md                          ← System prompt — always loaded
 ├── README.md                          ← You are here
 │
 ├── agentic-standards/                 ← General agent behavior (any interaction)
@@ -68,7 +73,7 @@ skills/
 
 ### AGENTS.md — the always-on layer
 
-`AGENTS.md` is the system prompt. It encodes the behavioral DNA that the agent follows on every turn: plan-before-act discipline, reversibility framework, error recovery and resilience, tool preferences, output quality, security policy, memory conventions (including session memory and staleness), context management, multi-agent coordination, session handoff, code review handling, system prompt architecture (with environment context injection), and project instruction file conventions.
+Canonical templates: [`../templates/AGENTS-coding.md`](../templates/AGENTS-coding.md) (software-engineering emphasis) and [`../templates/AGENTS-generic.md`](../templates/AGENTS-generic.md) (coding plus research, writing, and general queries). Copy **one** to your **project root** as `AGENTS.md`. That file is the system prompt: behavioral DNA for every turn — plan-before-act discipline, reversibility framework, error recovery and resilience, tool preferences, output quality, security policy, memory conventions (including session memory and staleness), context management, multi-agent coordination, session handoff, review/feedback handling, system prompt architecture (with environment context injection), and project instruction file conventions.
 
 It is designed to be loaded automatically by any AI IDE that supports `AGENTS.md` or equivalent project-level instruction files. It does **not** name or reference any skills — it establishes the behavioral rules and workflow patterns that skills implement in depth.
 
@@ -140,13 +145,13 @@ Skills that produce persistent output (memories, handoffs) write to a standard l
 ## Quick start
 
 ### Any AI IDE with AGENTS.md support
-Copy this folder into your project root. The IDE loads `AGENTS.md` automatically.
+Copy this `skills/` folder into your project. Copy [`../templates/AGENTS-coding.md`](../templates/AGENTS-coding.md) or [`../templates/AGENTS-generic.md`](../templates/AGENTS-generic.md) to your **project root** as `AGENTS.md`. The IDE loads it automatically.
 
 ### Cursor
-Copy this folder into your project. Cursor loads `AGENTS.md` from the project root. Skills in subdirectories are available if your setup supports skill loading.
+Copy this `skills/` folder into your project and add `AGENTS.md` at the project root (from the template above). Cursor loads `AGENTS.md` from the project root. Skills in subdirectories are available if your setup supports skill loading.
 
 ### OpenCode / Antigravity / other agents
-Point your agent at this folder. Load `AGENTS.md` as the system prompt. Configure skill directories for on-demand loading.
+Point your agent at this folder. Load [`../templates/AGENTS-coding.md`](../templates/AGENTS-coding.md) or [`../templates/AGENTS-generic.md`](../templates/AGENTS-generic.md) as the system prompt (or copy to project root as `AGENTS.md`). Configure skill directories for on-demand loading.
 
 ### Standalone skill use
 Each skill works independently. Point your agent at any `SKILL.md` to load just that workflow.

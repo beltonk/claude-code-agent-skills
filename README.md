@@ -5,7 +5,7 @@ A comprehensive architecture analysis of [Claude Code](https://docs.anthropic.co
 Claude Code is a production agentic system that reads codebases, edits files, runs commands, manages memory, coordinates sub-agents, and operates autonomously. We studied its publicly available architecture and produced:
 
 1. **[Architecture Analysis](#architecture-overview)** — Six documents covering the agent loop, prompt engineering, tool system, memory, permissions, multi-agent coordination, and more.
-2. **[Reusable Agent Skills](#the-agent-skills-pack)** — A drop-in `AGENTS.md` system prompt and 6 standalone agent skills, LLM-agnostic and IDE-agnostic (overlapping workflow skills defer to [Superpowers](https://github.com/obra/superpowers); see below).
+2. **[Reusable Agent Skills](#the-agent-skills-pack)** — Drop-in system prompt templates ([`templates/AGENTS-coding.md`](./templates/AGENTS-coding.md) for code-heavy work, [`templates/AGENTS-generic.md`](./templates/AGENTS-generic.md) for coding + general Q&A; copy one to project root as `AGENTS.md`) and 6 standalone agent skills, LLM-agnostic and IDE-agnostic (overlapping workflow skills defer to [Superpowers](https://github.com/obra/superpowers); see below).
 3. **[From Analysis to Agent Skills](#from-analysis-to-agent-skills)** — What was distilled into skills, what wasn't (and why), and how to implement the rest.
 
 ---
@@ -131,7 +131,7 @@ The AGENTS.md system prompt and 6 agent skills encode the patterns that govern *
 | **Memory** (§4) | Index-file architecture, threshold-gated extraction, staleness detection, secret scanning, LLM-based recall | managing-memories skill |
 | **Context management** (§5) | 9-section structured summaries, two-phase compression, post-compact re-injection | compacting-context skill |
 | **Permission & safety** (§6) | Reversibility framework, risk assessment heuristic, security policy, prompt injection defense | AGENTS.md §Executing Actions with Care, agentic-standards skill |
-| **Multi-agent coordination** (§7) | Research→Synthesis→Implementation→Verification workflow, self-contained worker prompts, worktree isolation | Described inline in `skills/AGENTS.md`; for a maintained skill pack use [Superpowers](https://github.com/obra/superpowers) (`dispatching-parallel-agents`, `subagent-driven-development`, `using-git-worktrees`) |
+| **Multi-agent coordination** (§7) | Research→Synthesis→Implementation→Verification workflow, self-contained worker prompts, worktree isolation | Described inline in [`templates/AGENTS-coding.md`](./templates/AGENTS-coding.md) / [`templates/AGENTS-generic.md`](./templates/AGENTS-generic.md); for a maintained skill pack use [Superpowers](https://github.com/obra/superpowers) (`dispatching-parallel-agents`, `subagent-driven-development`, `using-git-worktrees`) |
 | **Self-correction** (§8) | Adversarial verification, evidence requirements, plan-mode reasoning | [Superpowers](https://github.com/obra/superpowers) `verification-before-completion`, `systematic-debugging`, `test-driven-development`; optional [`run-checks.sh`](./skills/coding-practices/scripts/run-checks.sh) + [report template](./skills/coding-practices/references/verification-report-template.md) under `coding-practices` |
 | **Session continuity** | Structured handoff documents, session memory extraction | handing-off-sessions skill |
 | **Code review** | Severity classification, independent verification, conflict resolution | [Superpowers](https://github.com/obra/superpowers) [`receiving-code-review`](https://github.com/obra/superpowers/tree/main/skills/receiving-code-review) |
@@ -229,14 +229,14 @@ Drop `skills/` into any project to equip your AI agent with Claude Code–inspir
 
 | Layer | What | Token cost |
 |-------|------|------------|
-| `AGENTS.md` | System prompt — behavioral rules, safety, memory, context management, prompt architecture | Always loaded (~4K tokens) |
+| [`templates/AGENTS-coding.md`](./templates/AGENTS-coding.md), [`templates/AGENTS-generic.md`](./templates/AGENTS-generic.md) | System prompt templates — copy one to project root as `AGENTS.md` — behavioral rules, safety, memory, context management, prompt architecture | Always loaded (~4K tokens) when installed at project root |
 | 6 agent skills | General standards, coding practices (incl. optional verification scripts/templates), context compaction, memory lifecycle, session handoff, project scaffolding | On trigger |
 | Reference docs | Tool design, permission pipeline, system prompt architecture, verification templates, memory/context pipelines, etc. | On demand |
 | 6 bash scripts | Test/lint/type/build runner, token estimation, session context gather, project exploration, secret scanning, memory index | Called by skills |
 
 ### Relationship to [Superpowers](https://github.com/obra/superpowers)
 
-[Superpowers](https://github.com/obra/superpowers) is a widely used, actively developed agentic skills framework (install in Cursor via `/add-plugin superpowers`). This repository **removed** standalone skills that duplicated Superpowers’ coverage (`receiving-code-review`, `coordinating-agents`, `verifying-implementations` / `verification-before-completion` territory) so you are not maintaining two versions of the same workflows. **`skills/AGENTS.md` still documents** multi-agent and code-review behavior for agents that only load this repo; users with Superpowers should rely on its skills for those flows. **`scaffolding-projects`** remains: it is not a drop-in replacement for Superpowers’ `brainstorming` / `writing-plans` / `executing-plans` split — see [skills/README.md](./skills/README.md) for how to choose or combine.
+[Superpowers](https://github.com/obra/superpowers) is a widely used, actively developed agentic skills framework (install in Cursor via `/add-plugin superpowers`). This repository **removed** standalone skills that duplicated Superpowers’ coverage (`receiving-code-review`, `coordinating-agents`, `verifying-implementations` / `verification-before-completion` territory) so you are not maintaining two versions of the same workflows. **[`templates/AGENTS-coding.md`](./templates/AGENTS-coding.md)** / **[`templates/AGENTS-generic.md`](./templates/AGENTS-generic.md)** still document multi-agent and review behavior for agents that only load this repo; users with Superpowers should rely on its skills for those flows. **`scaffolding-projects`** remains: it is not a drop-in replacement for Superpowers’ `brainstorming` / `writing-plans` / `executing-plans` split — see [skills/README.md](./skills/README.md) for how to choose or combine.
 
 **Works with:** Cursor, OpenCode, Antigravity, Claude Code, or any AI IDE supporting `AGENTS.md` or agent skills.
 
