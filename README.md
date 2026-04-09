@@ -14,6 +14,36 @@ Claude Code is a production agentic system that reads codebases, edits files, ru
 
 > How Claude Code turns an LLM into a terminal-based coding agent — the design patterns, prompt engineering, safety mechanisms, and memory strategies that make it work.
 
+How the main moving parts relate (each subsection below goes deeper):
+
+```mermaid
+flowchart TB
+  subgraph Loop["Core agent loop (flat state machine)"]
+    direction TB
+    PC[Prepare context]
+    CM[Call model]
+    PT[Parse tool calls]
+    EX[Execute tools]
+    PC --> CM --> PT --> EX --> PC
+  end
+
+  CM <-->|tokens| LLM[LLM]
+
+  EX <-->|schema · hooks · permissions| TEXEC[Tool execution + OS sandbox]
+
+  subgraph CTX["Five-stage context pipeline (between turns)"]
+    direction LR
+    C1[Truncate] --> C2[Snip] --> C3[Micro-compact] --> C4[Collapse] --> C5[Auto-compact]
+  end
+
+  PC -.->|stages 1–3 cheap, every turn| CTX
+  CTX -.->|compressed history| PC
+
+  MEM[Memory: CLAUDE.md · auto · session · team + MEMORY.md index] -.-> PC
+  PROMPT[System prompt: static prefix + dynamic suffix] -.-> CM
+  PERM[Permission pipeline: deny → ask → allow → mode] -.-> EX
+```
+
 ### The Agent Loop
 
 A flat `while(true)` state machine (not recursive): **prepare context → call the model → parse tool calls → execute tools → feed results back**. Each iteration carries an explicit state object with 10 fields. The loop has 10 termination conditions and 7 retry strategies.
