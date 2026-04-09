@@ -8,6 +8,8 @@ Claude Code is a production agentic system that reads codebases, edits files, ru
 2. **[Reusable Agent Skills](#the-agent-skills-pack)** — Drop-in system prompt templates ([`templates/AGENTS-coding.md`](./templates/AGENTS-coding.md) for code-heavy work, [`templates/AGENTS-generic.md`](./templates/AGENTS-generic.md) for coding + general Q&A; copy one to project root as `AGENTS.md`) and 6 standalone agent skills, LLM-agnostic and IDE-agnostic (overlapping workflow skills defer to [Superpowers](https://github.com/obra/superpowers); see below).
 3. **[From Analysis to Agent Skills](#from-analysis-to-agent-skills)** — What was distilled into skills, what wasn't (and why), and how to implement the rest.
 
+**Harness vs instructions.** The **agent harness** is the runtime *around* the model: the control loop, context pipeline, tool execution, permission gates, sandbox, and multi-agent hosting. **[Architecture Overview](#architecture-overview)** and the **[analysis documents](#analysis-documents)** describe that stack; **[The Agent Skills Pack](#the-agent-skills-pack)** and [`templates/`](./templates/) are *instructions for the model*. **[From Analysis to Agent Skills](#from-analysis-to-agent-skills)** draws the line between what you implement in code and what you put in prompts.
+
 ---
 
 ## Architecture Overview
